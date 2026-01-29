@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sqlalchemy
+pyodbc
+pydantic
+python-dotenv
+python-multipart
