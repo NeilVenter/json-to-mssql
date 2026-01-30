@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, 
 from sqlalchemy.engine import URL
 import urllib.parse
 from typing import Dict, List, Any
-from schema_engine import SchemaMap, TableSchema
+from schema_engine import SchemaMap, TableSchema, truncate_name, MAX_NAME_LENGTH
 
 def get_engine(connection_string: str):
     # connection_string might be raw ODBC or SQLAlchemy URL
@@ -84,7 +84,7 @@ def flatten_data(schema_map: SchemaMap, json_data: Any) -> Dict[str, List[Dict]]
             for k, v in obj.items():
                 if isinstance(v, (dict, list)):
                     # Child table
-                    child_table_name = f"{current_table_name}_{k}"
+                    child_table_name = truncate_name(f"{current_table_name}_{k}")
                     if child_table_name in table_schemas:
                         child_list = v if isinstance(v, list) else [v]
                         queue.append((child_table_name, child_list, current_id))
@@ -94,6 +94,7 @@ def flatten_data(schema_map: SchemaMap, json_data: Any) -> Dict[str, List[Dict]]
                     if k.lower() == "id":
                         col_name = "original_id"
                     
+                    col_name = truncate_name(col_name)
                     if any(c.name == col_name for c in schema.columns):
                         row[col_name] = v
                         
