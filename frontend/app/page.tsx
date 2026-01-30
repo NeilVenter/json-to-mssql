@@ -53,16 +53,24 @@ export default function Home() {
   }
 
   const generateMermaidChart = (schema: SchemaMap) => {
+    // Helper to sanitize entity names for Mermaid ERD
+    const escapeName = (name: string) => {
+      // Replace special characters with underscores for Mermaid compatibility
+      return name.replace(/[:\s\-\.]/g, "_")
+    }
+
     let chart = "erDiagram\n"
     schema.tables.forEach((table) => {
-      chart += `    ${table.name} {\n`
+      const escapedName = escapeName(table.name)
+      chart += `    ${escapedName} {\n`
       table.columns.forEach((col) => {
         // Mermaid types: string, int, float, etc.
         // We can just use the SQL type or simplify
         // fix: 'INT IDENTITY(1,1)' -> 'int'
         let type = col.type.split("(")[0].trim().split(" ")[0].toLowerCase()
+        const escapedColName = escapeName(col.name)
 
-        chart += `        ${type} ${col.name}`
+        chart += `        ${type} ${escapedColName}`
         if (col.is_pk) chart += " PK"
         if (col.is_fk) chart += " FK"
         chart += "\n"
@@ -77,8 +85,8 @@ export default function Home() {
           // table }|..|| fk_table : "related"
           // actually Child }|--|| Parent usually
           // For visualization: Parent ||--|{ Child
-          const parent = col.fk_table
-          const child = table.name
+          const parent = escapeName(col.fk_table)
+          const child = escapeName(table.name)
           chart += `    ${parent} ||--o{ ${child} : "has"\n`
         }
       })
